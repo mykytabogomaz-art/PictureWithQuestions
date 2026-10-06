@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picture Description Exercise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e2e8f0; /* Neutral slate-200 */
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1em;
+            padding-right: 2rem !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hide image fallback container by default */
+        .img-fallback {
+            display: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main container strictly set to 75vh -->
+    <div class="w-full max-w-3xl h-[75vh] bg-white rounded-xl shadow-xl flex flex-col overflow-hidden border border-slate-300 relative">
+        
+        <!-- Header -->
+        <header class="bg-slate-50 border-b border-slate-200 px-6 py-3 flex justify-between items-center shrink-0 h-14">
+            <h1 class="font-semibold text-slate-700 text-lg">Picture Description</h1>
+            <span id="progress-text" class="text-sm font-medium text-slate-500 bg-slate-200 px-3 py-1 rounded-full">Task 1 of 5</span>
+        </header>
+
+        <!-- Content Area: Flex container with hidden overflow to prevent scrolling -->
+        <main class="flex-grow flex flex-col overflow-hidden p-4 md:p-6" id="app-content">
+            <!-- Dynamic content injected here -->
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-slate-50 border-t border-slate-200 px-6 py-3 flex items-center justify-between shrink-0 h-16">
+            <div id="feedback-message" class="text-slate-500 font-medium text-sm md:text-base transition-opacity duration-300">
+                Complete the sentences below.
+            </div>
+            <button id="next-btn" onclick="nextTask()" class="hidden bg-slate-800 hover:bg-slate-700 text-white font-medium py-2 px-6 rounded-lg shadow-sm transition-colors duration-200">
+                Next Task &rarr;
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        // Task data combining distractors and correct answers
+        const tasks = [
+            {
+                imgSrc: "1.jpg",
+                q1: "Who is in this picture?",
+                q1Parts: [
+                    { answer: "A boy", options: ["A girl", "A boy", "The family", "A man"] },
+                    { answer: "and", options: ["with", "or", "and", "behind"] },
+                    { answer: "a ball.", options: ["a dog.", "juice.", "a ball.", "apples."] }
+                ],
+                q2: "What is he doing?",
+                q2Parts: [
+                    { answer: "The boy", options: ["The woman", "The squirrel", "The boy", "A dog"] },
+                    { answer: "is throwing", options: ["is sitting", "is throwing", "is catching", "are flying"] },
+                    { answer: "a ball.", options: ["juice.", "a ball.", "together.", "apples."] }
+                ]
+            },
+            {
+                imgSrc: "2.jpg",
+                q1: "Who is in this picture?",
+                q1Parts: [
+                    { answer: "A woman", options: ["A boy", "A family", "Two butterflies", "A woman"] },
+                    { answer: "and", options: ["and", "or", "with", "without"] },
+                    { answer: "juice.", options: ["water.", "a ball.", "juice.", "a tree."] }
+                ],
+                q2: "What is she doing?",
+                q2Parts: [
+                    { answer: "The woman", options: ["The family", "The woman", "The boy", "The squirrel"] },
+                    { answer: "is pouring", options: ["is throwing", "is sitting", "is pouring", "is hiding"] },
+                    { answer: "juice.", options: ["a ball.", "juice.", "together.", "water."] }
+                ]
+            },
+            {
+                imgSrc: "3.jpg",
+                q1: "What is in this picture?",
+                q1Parts: [
+                    { answer: "A squirrel.", options: ["A squirrel.", "A dog.", "A bird.", "A boy."] }
+                ],
+                q2: "What is it doing?",
+                q2Parts: [
+                    { answer: "The squirrel", options: ["The squirrel", "The boy", "The family", "The butterflies"] },
+                    { answer: "is hiding.", options: ["is flying.", "is throwing.", "is hiding.", "is sleeping."] }
+                ]
+            },
+            {
+                imgSrc: "4.jpg",
+                q1: "What is in this picture?",
+                q1Parts: [
+                    { answer: "Two butterflies.", options: ["A squirrel.", "One butterfly.", "Two butterflies.", "A family."] }
+                ],
+                q2: "What are they doing?",
+                q2Parts: [
+                    { answer: "The butterflies", options: ["The family", "The birds", "The butterflies", "The squirrel"] },
+                    { answer: "are flying.", options: ["is hiding.", "are flying.", "are sitting.", "is pouring."] }
+                ]
+            },
+            {
+                imgSrc: "5.jpg",
+                q1: "Who is in this picture?",
+                q1Parts: [
+                    { answer: "A family.", options: ["A woman.", "Two butterflies.", "A boy.", "A family."] }
+                ],
+                q2: "What are they doing?",
+                q2Parts: [
+                    { answer: "The family", options: ["The family", "The boy", "The woman", "The squirrel"] },
+                    { answer: "is sitting", options: ["is hiding", "is pouring", "is sitting", "is standing"] },
+                    { answer: "together.", options: ["alone.", "juice.", "together.", "a ball."] }
+                ]
+            }
+        ];
+
+        let currentTaskIndex = 0;
+
+        function renderTask() {
+            const task = tasks[currentTaskIndex];
+            const contentArea = document.getElementById('app-content');
+            
+            document.getElementById('progress-text').innerText = `Task ${currentTaskIndex + 1} of ${tasks.length}`;
+            
+            const nextBtn = document.getElementById('next-btn');
+            const feedbackMsg = document.getElementById('feedback-message');
+            nextBtn.classList.add('hidden');
+            feedbackMsg.innerText = "Complete the sentences below.";
+            feedbackMsg.className = "text-slate-500 font-medium text-sm md:text-base";
+
+            const buildDropdowns = (parts) => {
+                return parts.map((part, index) => {
+                    // Default styling for neutral unselected dropdown
+                    const defaultClasses = "answer-select bg-slate-50 border border-slate-300 text-slate-700 text-sm md:text-base rounded-md focus:ring-2 focus:ring-slate-400 focus:border-slate-400 block px-3 py-1.5 cursor-pointer shadow-sm outline-none transition-all";
+                    return `
+                        <select 
+                            data-answer="${part.answer}" 
+                            onchange="validateAnswers()"
+                            class="${defaultClasses}"
+                        >
+                            <option value="" disabled selected>...</option>
+                            ${part.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    `;
+                }).join('');
+            };
+
+            // Layout uses flex-col. 
+            // Image takes up to 35% height (h-[35%]). 
+            // Questions flex-grow to take remaining space, distributed evenly.
+            contentArea.innerHTML = `
+                <div class="fade-in flex flex-col h-full w-full gap-4">
+                    
+                    <!-- Image Section (Restricted height to prevent scroll) -->
+                    <div class="w-full h-[35%] min-h-[120px] bg-slate-100 rounded-lg border border-slate-200 p-2 flex items-center justify-center relative overflow-hidden shrink-0">
+                        <img 
+                            src="${task.imgSrc}" 
+                            alt="Exercise Image" 
+                            class="w-full h-full object-contain"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                        />
+                        <!-- Fallback block if image is not found -->
+                        
+                    </div>
+
+                    <!-- Questions Section (Takes remaining height) -->
+                    <div class="flex-grow flex flex-col justify-evenly py-2 min-h-0">
+                        
+                        <!-- Question 1 -->
+                        <div class="flex flex-col gap-2">
+                            <h2 class="text-slate-800 font-medium text-base md:text-lg flex items-center gap-2">
+                                <span class="bg-slate-200 text-slate-600 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                                ${task.q1}
+                            </h2>
+                            <div class="flex flex-wrap items-center gap-2 pl-8">
+                                ${buildDropdowns(task.q1Parts)}
+                            </div>
+                        </div>
+
+                        <!-- Question 2 -->
+                        <div class="flex flex-col gap-2">
+                            <h2 class="text-slate-800 font-medium text-base md:text-lg flex items-center gap-2">
+                                <span class="bg-slate-200 text-slate-600 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                                ${task.q2}
+                            </h2>
+                            <div class="flex flex-wrap items-center gap-2 pl-8">
+                                ${buildDropdowns(task.q2Parts)}
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            `;
+        }
+
+        function validateAnswers() {
+            const selects = document.querySelectorAll('.answer-select');
+            let allCorrect = true;
+            let allFilled = true;
+
+            selects.forEach(select => {
+                const correctAnswer = select.getAttribute('data-answer');
+                const selectedValue = select.value;
+
+                // Base classes
+                let classes = "answer-select text-sm md:text-base rounded-md block px-3 py-1.5 cursor-pointer shadow-sm outline-none transition-all ";
+
+                if (!selectedValue) {
+                    allFilled = false;
+                    allCorrect = false;
+                    classes += "bg-slate-50 border border-slate-300 text-slate-700 focus:ring-2 focus:ring-slate-400 focus:border-slate-400";
+                } else if (selectedValue === correctAnswer) {
+                    // Success state: Green visual indication
+                    classes += "bg-green-50 border-2 border-green-500 text-green-800 font-medium";
+                } else {
+                    // Incorrect state: standard neutral border
+                    allCorrect = false;
+                    classes += "bg-white border border-slate-300 text-slate-600 focus:ring-2 focus:ring-slate-400 focus:border-slate-400";
+                }
+                
+                select.className = classes;
+            });
+
+            const feedbackMsg = document.getElementById('feedback-message');
+            const nextBtn = document.getElementById('next-btn');
+
+            if (allCorrect) {
+                feedbackMsg.innerText = "Excellent! All correct.";
+                feedbackMsg.className = "text-green-600 font-semibold text-sm md:text-base";
+                nextBtn.classList.remove('hidden');
+                
+                if (currentTaskIndex === tasks.length - 1) {
+                    nextBtn.innerText = "Finish Exercise";
+                }
+            } else if (allFilled) {
+                feedbackMsg.innerText = "Keep trying. Check your answers.";
+                feedbackMsg.className = "text-slate-500 font-medium text-sm md:text-base";
+                nextBtn.classList.add('hidden');
+            }
+        }
+
+        function nextTask() {
+            currentTaskIndex++;
+            if (currentTaskIndex < tasks.length) {
+                renderTask();
+            } else {
+                showCompletionScreen();
+            }
+        }
+
+        function showCompletionScreen() {
+            document.getElementById('progress-text').innerText = "Complete";
+            document.querySelector('footer').classList.add('hidden');
+            
+            const contentArea = document.getElementById('app-content');
+            contentArea.innerHTML = `
+                <div class="fade-in flex flex-col items-center justify-center text-center h-full gap-4">
+                    <div class="w-16 h-16 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center mb-2">
+                        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <h1 class="text-2xl font-semibold text-slate-800">Great Job!</h1>
+                    <p class="text-slate-500 max-w-sm">You have successfully completed all picture descriptions.</p>
+                    <button onclick="location.reload()" class="mt-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 px-6 rounded-lg transition-colors">
+                        Start Over
+                    </button>
+                </div>
+            `;
+        }
+
+        // Initialize application on load
+        window.onload = renderTask;
+    </script>
+</body>
+</html>
